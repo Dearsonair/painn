@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Boulangerieee</title>
+<title>Boulangerie des Pains</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -13,24 +14,22 @@
     align-items: center;
     position: relative;
   }
-  h1 { margin-bottom: 10px; color: #ff69b4; text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4; }
+  h1 { margin-bottom: 10px; color: #ff69b4; text-shadow: 0 0 10px #ff69b4; }
   #menu-btn { position: fixed; top: 20px; right: 20px; background: transparent; border: none; font-size: 26px; cursor: pointer; color: #ff69b4; }
-  #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; padding-top: 60px; z-index: 1000; }
+  #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; flex-direction: column; align-items: center; padding-top: 60px; z-index: 999; }
   #close-menu { position: fixed; top: 20px; right: 20px; background: transparent; border: none; font-size: 28px; cursor: pointer; color: #ff69b4; }
   #profiles { margin-top: 40px; text-align: center; color: #ff69b4; }
   #input-zone { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
   select, input { padding: 8px 12px; border-radius: 8px; border: 1px solid #555; background: #111; color: #fff; }
   button { padding: 8px 12px; border-radius: 8px; border: none; background: #ff69b4; cursor: pointer; }
   #pain-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 600px; }
-  .pain-item { background: #222; padding: 10px 14px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 2px solid #ff69b4; min-width: 150px; box-shadow: 0 0 15px #ff69b4, 0 0 30px #ff69b4; transition: opacity 0.3s; }
-  .hidden { opacity: 0; pointer-events: none; }
-  .top-line { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .pain-item { background: #222; padding: 10px 14px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 2px solid #ff69b4; box-shadow: 0 0 15px #ff69b4; }
+  .author-name { font-weight: bold; color: #ff69b4; text-shadow: 0 0 5px #ff69b4; }
   .delete-btn { background: transparent; border: none; cursor: pointer; font-size: 14px; color: #ff69b4; }
-  .author-name { font-weight: bold; color: #ff69b4; text-shadow: 0 0 5px #ff69b4, 0 0 10px #ff69b4; margin-bottom: 4px; }
   .stars { display: flex; gap: 3px; cursor: pointer; }
   .star { font-size: 18px; color: #555; }
-  .star.filled { color: #ff69b4; text-shadow: 0 0 5px #ff69b4, 0 0 10px #ff69b4; }
-  .rating-text { font-size: 18px; opacity: 0.9; color: #ff69b4; text-shadow: 0 0 5px #ff69b4, 0 0 10px #ff69b4; }
+  .star.filled { color: #ff69b4; text-shadow: 0 0 5px #ff69b4; }
+  .rating-text { font-size: 16px; color: #ff69b4; }
 </style>
 </head>
 <body>
@@ -39,7 +38,9 @@
     <button id="close-menu">✖</button>
     <h2>Profils des Auteurs</h2>
     <div id="profiles"></div>
-  </div>  <h1>Boulangerie des Pains 🥖💗</h1>
+  </div>
+
+  <h1>Boulangerie des Pains 🥖💗</h1>
   <div id="input-zone">
     <select id="author-select">
       <option value="Toxico🚬😎">Toxico🚬😎</option>
@@ -50,7 +51,26 @@
     <input type="text" id="name-input" placeholder="Nom du pain...">
     <button id="add-btn">Ajouter</button>
   </div>
-  <div id="pain-list"></div><script>
+  <div id="pain-list"></div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDzGayU8pmX9ll1zJ7IFh6h0-0hQRDYuXo",
+    authDomain: "boulangerie-5dcf4.firebaseapp.com",
+    projectId: "boulangerie-5dcf4",
+    storageBucket: "boulangerie-5dcf4.firebasestorage.app",
+    messagingSenderId: "930918869651",
+    appId: "1:930918869651:web:14a5ab61066020b7213b66",
+    measurementId: "G-B9SE4VKGKC"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const painsRef = collection(db, "pains");
+
   const input = document.getElementById('name-input');
   const authorSelect = document.getElementById('author-select');
   const addBtn = document.getElementById('add-btn');
@@ -60,67 +80,46 @@
   const closeMenu = document.getElementById('close-menu');
   const profilesDiv = document.getElementById('profiles');
 
-  let pains = JSON.parse(localStorage.getItem('pains')) || [];
+  addBtn.onclick = async () => {
+    const name = input.value.trim();
+    const author = authorSelect.value;
+    if (name !== '') {
+      await addDoc(painsRef, { name, author, rating: 0 });
+      input.value = '';
+    }
+  };
 
-  function save() {
-    localStorage.setItem('pains', JSON.stringify(pains));
-  }
-
-  function renderProfiles() {
+  function renderProfiles(pains) {
     const authors = ["Toxico🚬😎","Falafel💄🤭","Goumin🌸😘","Mousieuh💅🤪"];
     profilesDiv.innerHTML = '';
     authors.forEach(author => {
-      const authorPains = pains.filter(p => p.author === author);
-      const count = authorPains.length;
-      let avg = 0;
-      if (count > 0) {
-        avg = authorPains.reduce((sum, p) => sum + (p.rating || 0), 0) / count;
-      }
-      const div = document.createElement('div');
-      div.innerHTML = `<h3>${author}</h3><p>Pains: ${count}</p><p>Moyenne: ${avg.toFixed(2)}/5</p><hr>`;
-      profilesDiv.appendChild(div);
+      const list = pains.filter(p => p.data.author === author);
+      const count = list.length;
+      const avg = count > 0 ? list.reduce((a,p)=>a+(p.data.rating||0),0)/count : 0;
+      profilesDiv.innerHTML += `<h3>${author}</h3><p>Pains: ${count}</p><p>Moyenne: ${avg.toFixed(2)}/5</p><hr>`;
     });
   }
 
-  function render() {
+  onSnapshot(painsRef, snapshot => {
+    const data = snapshot.docs.map(doc => ({ id: doc.id, data: doc.data() }));
     painList.innerHTML = '';
-    pains.forEach((item, index) => {
+    data.forEach(item => {
       const div = document.createElement('div');
       div.className = 'pain-item';
-      if (overlay.style.display === 'flex') div.classList.add('hidden');
 
-      const authorDiv = document.createElement('div');
-      authorDiv.className = 'author-name';
-      authorDiv.textContent = item.author;
-      div.appendChild(authorDiv);
+      div.innerHTML = `<div class="author-name">${item.data.author}</div>
+      <div class="top-line">${item.data.name} <button class="delete-btn">🗑️</button></div>`;
 
-      const top = document.createElement('div');
-      top.className = 'top-line';
-      top.innerHTML = `${item.name}`;
-
-      const del = document.createElement('button');
-      del.className = 'delete-btn';
-      del.textContent = '🗑️';
-      del.onclick = () => {
-        pains.splice(index, 1);
-        save();
-        render();
-      };
-      top.appendChild(del);
-      div.appendChild(top);
+      div.querySelector('.delete-btn').onclick = () => deleteDoc(doc(db, "pains", item.id));
 
       const starContainer = document.createElement('div');
       starContainer.className = 'stars';
-      const rating = item.rating || 0;
+      const rating = item.data.rating || 0;
       for (let i = 1; i <= 5; i++) {
         const s = document.createElement('span');
         s.className = 'star' + (i <= rating ? ' filled' : '');
         s.textContent = '★';
-        s.onclick = () => {
-          pains[index].rating = i;
-          save();
-          render();
-        };
+        s.onclick = () => updateDoc(doc(db, "pains", item.id), { rating: i });
         starContainer.appendChild(s);
       }
       div.appendChild(starContainer);
@@ -134,31 +133,12 @@
 
       painList.appendChild(div);
     });
-  }
 
-  addBtn.onclick = () => {
-    const name = input.value.trim();
-    const author = authorSelect.value;
-    if (name !== '') {
-      pains.push({ name, author, rating: 0 });
-      save();
-      render();
-      input.value = '';
-    }
-  };
+    renderProfiles(data);
+  });
 
-  menuBtn.onclick = () => {
-    overlay.style.background = '#000';
-    renderProfiles();
-    overlay.style.display = 'flex';
-    render();
-  };
-
-  closeMenu.onclick = () => {
-    overlay.style.display = 'none';
-    render();
-  };
-
-  render();
-</script></body>
+  menuBtn.onclick = () => overlay.style.display = 'flex';
+  closeMenu.onclick = () => overlay.style.display = 'none';
+</script>
+</body>
 </html>
