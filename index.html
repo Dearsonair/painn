@@ -21,7 +21,19 @@
   #profiles { margin-top: 40px; text-align: center; color: #ff69b4; }
   #input-zone { display: flex; gap: 10px; margin-bottom: 20px; align-items: center; }
   select, input { padding: 8px 12px; border-radius: 8px; border: 1px solid #555; background: #111; color: #fff; }
-  button { padding: 8px 12px; border-radius: 8px; border: none; background: #ff69b4; cursor: pointer; }
+  button {
+  background: #ff69b4;
+  border: none;
+  color: white;
+  padding: 8px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 0 10px #ff69b4;
+}
+button:hover {
+  opacity: 0.85;
+}
   #pain-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 600px; }
   .pain-item { background: #222; padding: 10px 14px; border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 2px solid #ff69b4; box-shadow: 0 0 15px #ff69b4; }
   .author-name { font-weight: bold; color: #ff69b4; text-shadow: 0 0 5px #ff69b4; }
